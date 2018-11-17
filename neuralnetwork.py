@@ -21,10 +21,7 @@ class Node:
         self.outEdges = []
         self.addBias()
 
-    def addBias(self):
-        self.inEdges.append(Edge(BiasNode(), self))
-
-    def getOutput(self, inputVector):
+    def getOutput(self, inputVal):
         # if we just calculated the output, return it, otherwise calculate it
         if self.output is not None:
             return self.output
@@ -32,9 +29,9 @@ class Node:
         self.input = []
         weightedSum = 0
 
-        # calculate the sum of the product between the input to the node times the weight of the input edge
+        # for each input edge calculate the sum of the product between the input to the node times the weight of the input edge
         for edge in self.inEdges:
-            theInput = edge.source.getOutput(inputVector)
+            theInput = edge.source.getOutput(inputVal)
             self.input.append(theInput)
             weightedSum += edge.weight * theInput
 
@@ -78,6 +75,9 @@ class Node:
             for edge in self.inEdges:
                 edge.source.clearOutput()
 
+    def addBias(self):
+        self.inEdges.append(Edge(BiasNode(), self))
+
 # class for the input nodes, getOutput() simple returns the value of the input vector
 class InputNode(Node):
 
@@ -85,26 +85,26 @@ class InputNode(Node):
         Node.__init__(self)
         self.index = index;
 
-    def getOutput(self, inputVector):
-        self.output = inputVector[self.index]
+    def getOutput(self, inputVal):
+        self.output = inputVal[self.index]
         return self.output
-
-    # starts propagation of network to update weights
-    def updateWeights(self, learningRate):
-        for edge in self.outEdges:
-            edge.target.updateWeights(learningRate)
 
     # starts propagation of network to get error
     def getError(self, ans):
         for edge in self.outEdges:
             edge.target.getError(ans)
 
-    # no bias for the input nodes
-    def addBias(self):
-        pass
+    # starts propagation of network to update weights
+    def updateWeights(self, learningRate):
+        for edge in self.outEdges:
+            edge.target.updateWeights(learningRate)
 
     def clearOutput(self):
         self.output = None
+
+    # no bias for the input nodes
+    def addBias(self):
+        pass
 
 # works like the class InputNode but the output is just 1.0 (the value of the bias will be the weight of the edge
 # connected to the target node
@@ -113,7 +113,7 @@ class BiasNode(InputNode):
     def __init__(self):
         Node.__init__(self)
 
-    def getOutput(self, inputVector):
+    def getOutput(self, inputVal):
         return 1.0
 
 # every edge get a random weight value between [0,1] when initialised 
@@ -135,10 +135,10 @@ class Network:
         self.inNodes = []
         self.outNode = None
 
-    def getOutput(self, inputVector):
+    def getOutput(self, inputVal):
         self.outNode.clearOutput()
 
-        output = self.outNode.getOutput(inputVector)
+        output = self.outNode.getOutput(inputVal)
         return output
 
     def backPropagate(self, ans):
@@ -152,11 +152,12 @@ class Network:
     def train(self, trainingData, learningRate=0.9, maxIterations=10000):
        
         # queue for animation of the network learning in class main()
-        q = deque()
+        # not yet eligable for jet example
+        #q = deque()
         for _ in range(maxIterations):
            
-            tempx = ([])
-            tempy = ([])  
+            tempx = []
+            tempy = []  
         
             # inputData is the input the network will learn from
             # ans is the correct answer of the inputData, the network will use this
@@ -164,13 +165,27 @@ class Network:
             for inputData, ans in trainingData:
                 output = self.getOutput(inputData)
                 #q.append((inputData[0],output))
-                tempx.append(inputData[0])
-                tempy.append(output)
+                #tempx.append(inputData[0])
+                #tempy.append(output)
 
                 self.backPropagate(ans)
                 self.updateWeights(learningRate)
           
-            q.append((tempx, tempy))
+            #q.append((tempx, tempy))
           
         return q 
-      
+     
+    def test(self, testData):
+
+        outputGluon = []
+        outputQuark = []
+
+        for inputData, ans in testData:
+            output = self.getOutput(inputData)
+            if int(ans) is 1:
+                outputGluon.append(output)
+            else: 
+                outputQuark.append(output)
+
+        return (outputGluon, outputQuark)
+ 
