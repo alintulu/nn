@@ -6,6 +6,10 @@ from collections import deque
 def actFunc1(x):
     return 1.0 / (1.0 + math.exp(-x))
 
+# first update weights function
+def updateWFunc1(learningRate, out, error, inp):
+    return learningRate * out * (1 - out) * error * inp
+
 # we keep track on current input, output and error value to be able to update weights
 # inEdges keep track on thea the edges connected to a node in layer n from all nodes in layer n-1
 # outEdges keep track on thea the edges connected from a node in layer n to all nodes in layer n+1
@@ -59,7 +63,7 @@ class Node:
         if (self.input is not None and self.output is not None and self.error is not None):
 
             for i, edge in enumerate(self.inEdges):
-                edge.weight += (learningRate * self.output * (1 - self.output) * self.error * self.input[i])
+                edge.weight += updateWFunc1(learningRate, self.output, self.error, self.input[i])
 
             for edge in self.outEdges:
                 edge.target.updateWeights(learningRate)
@@ -153,7 +157,7 @@ class Network:
        
         # queue for animation of the network learning in class main()
         # not yet eligable for jet example
-        #q = deque()
+        # q = deque()
         for _ in range(maxIterations):
            
             tempx = []
