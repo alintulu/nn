@@ -39,9 +39,9 @@ def balanceData(df, numObject, par):
      df_quark = df_.loc[df_['isPhysG'] == 0]
 
      mini = min(len(df_gluon.index), len(df_quark.index))
-     if mini < numObject:
+     if mini >  numObject:
          mini = numObject    
-     return pd.concat(df_gluon.iloc[0:numObject], df_quark.iloc[0:numObject])
+     return pd.concat(df_gluon.iloc[0:mini], df_quark.iloc[0:mini])
 
 # split data into separate dataframes for training and testing
 def createTestTrainData(numObject, split):
